@@ -1,0 +1,158 @@
+import opengl.*;
+import math.*;
+import java.awt.*;
+import java.awt.event.*;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.awt.*;
+
+public class My_Cube implements WindowListener, GLEventListener, KeyListener {
+//  ---------  globale Daten  ---------------------------
+
+	String windowTitle = "Cube-Application";
+	int windowWidth = 800;
+	int windowHeight = 600;
+	String vShader = MyShaders.vShader1; // Vertex-Shader
+	String fShader = MyShaders.fShader1; // Fragment-Shader
+	Frame frame;
+	GLCanvas canvas; // OpenGL Window
+	int programId; // OpenGL-Id
+	VertexArray vArray;
+	Transform transform;
+	int maxVerts = 2048; // max. Anzahl Vertices im Vertex-Array
+	float elevation = 10; // Betrachtungswinkel (Kamera)
+	float azimut = 30;
+	float dist = 8; // Abstand Kamera vom Ursprung
+
+	float xleft = -3.0f, xright = 3.0f; // Viewing-Volume
+	float ybottom, ytop;
+	float znear = -10, zfar = 100;
+
+	public My_Cube(VertexArray vArray, float a) {
+		createFrame();
+	}
+
+	public void main(String[] args) {
+		new My_Cube(vArray, 2);
+	}
+	
+	void createFrame() // Fenster erzeugen
+	{
+		Frame f = new Frame(windowTitle);
+		f.setSize(windowWidth, windowHeight);
+		f.addWindowListener(this);
+		GLProfile glp = GLProfile.get(GLProfile.GL3);
+		GLCapabilities glCaps = new GLCapabilities(glp);
+		canvas = new GLCanvas(glCaps);
+		canvas.addGLEventListener(this);
+		f.add(canvas);
+		f.setVisible(true);
+		f.addKeyListener(this);
+		canvas.addKeyListener(this);
+	}
+
+	public void zeichneStrecke(GL3 gl, VertexArray va, Vec3 A, Vec3 B, Vec3 color) {
+		vArray.rewindBuffer(gl);
+		vArray.setColor(color.x, color.y, color.z); // Farbe setzen
+		vArray.putVertex(A.x, A.y, A.z);
+		vArray.putVertex(B.x, B.y, B.z);
+		vArray.copyBuffer(gl);
+		vArray.drawArrays(gl, GL3.GL_LINES);
+	}
+	
+	public void draw(GL3 gl) {
+		
+	}
+
+	void putQuad(GL3 gl, VertexArray vArray,
+			Vec3 A, Vec3 B, Vec3 C, Vec3 D) {
+		
+	}
+
+	@Override
+	public void display(GLAutoDrawable arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void dispose(GLAutoDrawable arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void init(GLAutoDrawable drawable) {
+		GL3 gl = drawable.getGL().getGL3();
+	       System.out.println("OpenGl Version: " + gl.glGetString(gl.GL_VERSION));
+	       System.out.println("Shading Language: " + gl.glGetString(gl.GL_SHADING_LANGUAGE_VERSION));
+	       System.out.println();
+	       gl.glClearColor(1,1,1,1); // Hintergrundfarbe
+	       // Compile/Link Shaders
+	       programId = MyShaders.initShaders(gl,vShader,fShader);
+	       vArray = new VertexArray(gl, programId, maxVerts);
+	       transform = new Transform(gl, programId);
+
+	}
+
+	@Override
+	    public void reshape(GLAutoDrawable drawable, int x, int y,
+	                        int width, int height)
+	    {  GL3 gl = drawable.getGL().getGL3();
+	       // ------  Set the viewport to the entire window
+	       gl.glViewport(0, 0, width, height);
+	       float aspect = (float)height/width;
+	       ybottom=aspect*xleft;
+	       ytop=aspect*xright;
+	       // ------ Projektionsmatrix (Orthogonalprojektion)
+	       transform.ortho(gl,xleft,xright,ybottom,ytop,znear,zfar);
+	    }
+
+	
+    //  ---------  Window-Events  --------------------
+	
+	@Override
+	public void windowClosing(WindowEvent e) {
+		System.out.println("closing window");
+        System.exit(0);
+	}
+	@Override
+	public void windowOpened(WindowEvent e) {}
+	
+	@Override
+	public void windowClosed(WindowEvent e) {}
+
+	@Override
+	public void windowIconified(WindowEvent e) {}
+
+	@Override
+	public void windowDeiconified(WindowEvent e) {}
+
+	@Override
+	public void windowActivated(WindowEvent e) {}
+
+	@Override
+	public void windowDeactivated(WindowEvent e) {}
+	
+//  ---------  Keyboard-Events  --------------------
+
+    public void keyPressed(KeyEvent e)
+    {  int code = e.getKeyCode();
+       switch (code)
+       { case KeyEvent.VK_LEFT:  azimut--;
+                                 break;
+         case KeyEvent.VK_RIGHT: azimut++;
+                                 break;
+         case KeyEvent.VK_UP:    elevation++;
+                                 break;
+         case KeyEvent.VK_DOWN:  elevation--;
+                                 break;
+       }
+       canvas.repaint();
+    }
+
+    @Override
+	public void keyTyped(KeyEvent e) {}
+
+	@Override
+	public void keyReleased(KeyEvent e) {}
+}
